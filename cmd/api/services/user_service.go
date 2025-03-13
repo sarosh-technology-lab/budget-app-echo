@@ -23,7 +23,7 @@ func (userService UserService) RegisterUser(userRequest *requests.RegisterUserRe
 	hashedPassword, err := common.HashPassword(userRequest.Password)
 	if err != nil {
 		fmt.Println(err)
-		return nil, errors.New("User")
+		return nil, errors.New("password hashing failed")
 	}
 	user := models.User{
 		FirstName: userRequest.FirstName,
@@ -47,4 +47,29 @@ func (userService UserService) GetUserByEmail(email string) (*models.User, error
 		return nil, result.Error
 	}
 	return &user, nil
+}
+
+func (userService UserService) ChangeUserPassword(user models.User, newPassword string) error {
+	// hash password
+	hashedPassword, err := common.HashPassword(newPassword)
+	if err != nil {
+		fmt.Println(err)
+		return errors.New("password change failed")
+	}
+
+	result := userService.db.Model(user).Update("password", hashedPassword); 
+	if result.Error != nil {
+		return errors.New("password change failed")
+	}
+
+	return nil
+}
+
+func (userService UserService) UpdateUser(user models.User, updateMap map[string]any) error {
+	result := userService.db.Model(user).Updates(updateMap); 
+	if result.Error != nil {
+		return errors.New("update user failed")
+	}
+
+	return nil
 }

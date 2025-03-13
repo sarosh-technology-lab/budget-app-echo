@@ -26,19 +26,19 @@ func (appMiddleware *AppMiddleware) AuthenticationMiddleware(next echo.HandlerFu
 		accessToken := authHeaderSplit[1]
 		claims, err := common.ParseJWTSignedAccessToken(accessToken)
 		if err != nil {
-			return common.SendErrorResponse(c, err.Error(), http.StatusUnauthorized)
+			return common.SendErrorResponse(c, "invalid access token", http.StatusUnauthorized)
 		}
 		if common.IsClaimExpired((claims)){
-			return common.SendErrorResponse(c, "Token is expired", http.StatusUnauthorized)
+			return common.SendErrorResponse(c, "token is expired", http.StatusUnauthorized)
 		}
 
 		var user models.User
 		result := appMiddleware.DB.First(&user, claims.ID)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return common.SendErrorResponse(c, "Invalid access Token", http.StatusUnauthorized)
+			return common.SendErrorResponse(c, "invalid access token", http.StatusUnauthorized)
 		}
 		if result.Error != nil {
-			return common.SendErrorResponse(c, "Invalid access Token", http.StatusUnauthorized)
+			return common.SendErrorResponse(c, "invalid access token", http.StatusUnauthorized)
 		}
 		c.Set("user", user)
 		return next(c)

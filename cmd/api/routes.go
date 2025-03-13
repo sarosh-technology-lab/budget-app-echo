@@ -10,7 +10,8 @@ func (app *Application) routes() {
 
 	profileRoutes := apiGroup.Group("/profile", app.appMiddleware.AuthenticationMiddleware)
 	{
-		profileRoutes.GET("/authenticated/user", app.handler.GetAuthenticationUser)
-		profileRoutes.GET("/user", app.handler.UserInfo)
+		profileRoutes.GET("/user", app.handler.GetAuthenticationUser)
+		profileRoutes.PUT("/change-password", app.handler.ChangeUserPassword)
+		profileRoutes.PUT("/update-user", app.handler.UpdateUser)
 	}
 }

@@ -7,16 +7,16 @@ import (
 	"budget-backend/internal/mailer"
 	"budget-backend/internal/models"
 	"errors"
-	"os"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
+	"os"
 )
 
 func (h *Handler) Register(c echo.Context) error {
 	//bind request body
 
 	payload := new(requests.RegisterUserRequest)
-	if err := (&echo.DefaultBinder{}).BindBody(c, payload); err != nil {
+	if err := h.BindBodyRequest(c, payload); err != nil {
 		return common.SendBadRequestResponse(c, err.Error())
 	}
 
@@ -42,7 +42,7 @@ func (h *Handler) Register(c echo.Context) error {
 
 	mailData := mailer.EmailData{
 		Subject: "welcome to " + os.Getenv("APP_NAME"),
-		Meta: struct{
+		Meta: struct {
 			FirstName string
 			LoginLink string
 		}{
@@ -66,7 +66,7 @@ func (h *Handler) Login(c echo.Context) error {
 	// bind data or in simple lang retrieve the data form the request
 
 	payload := new(requests.LoginRequest)
-	if err := (&echo.DefaultBinder{}).BindBody(c, payload); err != nil {
+	if err := h.BindBodyRequest(c, payload); err != nil {
 		return common.SendBadRequestResponse(c, err.Error())
 	}
 
@@ -87,7 +87,7 @@ func (h *Handler) Login(c echo.Context) error {
 
 	// compare the password with hashed password
 
-	if !common.CheckPasswordHash(payload.Password, user.Password){
+	if !common.CheckPasswordHash(payload.Password, user.Password) {
 		return common.SendBadRequestResponse(c, "Invalid credentials")
 	}
 
@@ -99,16 +99,16 @@ func (h *Handler) Login(c echo.Context) error {
 	}
 
 	return common.SendSuccessResponse(c, "User Login Succesful", map[string]interface{}{
-		"access_token": accessToken,
+		"access_token":  accessToken,
 		"refresh_token": refreshToken,
-		"user_id": user.ID,
+		"user_id":       user.ID,
 	})
 }
 
 func (h *Handler) GetAuthenticationUser(c echo.Context) error {
 	user, ok := c.Get("user").(models.User)
 	if !ok {
-		common.SendInternalServerErrorResponse(c, "User authuentication failed")
+		return common.SendInternalServerErrorResponse(c, "User authuentication failed")
 	}
 	return common.SendSuccessResponse(c, "authenticated user retreived", user)
 }
