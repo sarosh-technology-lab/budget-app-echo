@@ -6,6 +6,7 @@ func (app *Application) routes() {
 	{
 		publicAuthRoutes.POST("/register", app.handler.Register)
 		publicAuthRoutes.POST("/login", app.handler.Login)
+		publicAuthRoutes.POST("/forgot-password", app.handler.ForgotPassword)
 	}
 
 	profileRoutes := apiGroup.Group("/profile", app.appMiddleware.AuthenticationMiddleware)

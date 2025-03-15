@@ -7,9 +7,9 @@ import (
 	"budget-backend/internal/mailer"
 	"budget-backend/internal/models"
 	"errors"
+	"os"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
-	"os"
 )
 
 func (h *Handler) Register(c echo.Context) error {
@@ -37,9 +37,9 @@ func (h *Handler) Register(c echo.Context) error {
 
 	if payload.Phone != "" {
 		_, err := userService.GetUserByPhone(payload.Phone)
-	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		return common.SendBadRequestResponse(c, "Phone has already been taken")
-	}
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return common.SendBadRequestResponse(c, "Phone has already been taken")
+		}
 	}
 
 	registerUser, err := userService.RegisterUser(payload)
@@ -57,7 +57,7 @@ func (h *Handler) Register(c echo.Context) error {
 			LoginLink: "#",
 		},
 	}
-	
+
 	// sending a welcome email to user
 
 	err = h.Mailer.Send(payload.Email, "welcome.html", mailData)
@@ -89,8 +89,11 @@ func (h *Handler) Login(c echo.Context) error {
 	// check if the user with supplied email exists
 
 	user, err := userService.GetUserByEmail(payload.Email)
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return common.SendBadRequestResponse(c, "Invalid credentials")
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return common.SendBadRequestResponse(c, "Invalid credentials")
+		}
+		return common.SendInternalServerErrorResponse(c, "Something went wrong please try again later")
 	}
 
 	// compare the password with hashed password

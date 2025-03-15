@@ -10,21 +10,21 @@ import (
 
 func migrateUp(db *gorm.DB) error {
 	// Up migration: Create tables
-	err := db.AutoMigrate(&models.User{})
+	err := db.AutoMigrate(&models.User{}, &models.AppToken{})
 	if err != nil {
 		return err
 	}
-	log.Println("Up migration completed (users table created)")
+	log.Println("Up migration completed (tables created)")
 	return nil
 }
 
 func migrateDown(db *gorm.DB) error {
 	// Down migration: Drop tables
-	err := db.Migrator().DropTable(&models.User{})
+	err := db.Migrator().DropTable(&models.User{}, &models.AppToken{})
 	if err != nil {
 		return err
 	}
-	log.Println("Down migration completed (users table dropped)")
+	log.Println("Down migration completed (tables dropped)")
 	return nil
 }
 
