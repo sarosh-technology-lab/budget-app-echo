@@ -29,6 +29,7 @@ func (userService UserService) RegisterUser(userRequest *requests.RegisterUserRe
 		FirstName: userRequest.FirstName,
 		LastName: userRequest.LastName,
 		Password: hashedPassword,
+		Phone: userRequest.Phone,
 		Email: userRequest.Email,
 	}
 
@@ -43,6 +44,15 @@ func (userService UserService) RegisterUser(userRequest *requests.RegisterUserRe
 func (userService UserService) GetUserByEmail(email string) (*models.User, error) {
 	var user models.User
 	result := userService.db.Where("email = ?", email).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
+func (userService UserService) GetUserByPhone(phone string) (*models.User, error) {
+	var user models.User
+	result := userService.db.Where("phone = ?", phone).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}

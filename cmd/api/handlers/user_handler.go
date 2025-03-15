@@ -84,6 +84,14 @@ func (h *Handler) UpdateUser(c echo.Context) error {
 		updateMap["address"] = payload.Address
 	}
 	if payload.Phone != "" {
+		var existingUser models.User
+		err := h.DB.Where("phone = ? AND id != ?", payload.Phone, user.ID).First(&existingUser).Error
+		if err == nil { // Phone exists and belongs to another user
+			return common.SendBadRequestResponse(c, "Phone is already taken by another user")
+		} else if err != gorm.ErrRecordNotFound { // Unexpected error
+			return common.SendInternalServerErrorResponse(c, "Failed to check phone availability")
+		}
+
 		updateMap["phone"] = payload.Phone
 	}
 

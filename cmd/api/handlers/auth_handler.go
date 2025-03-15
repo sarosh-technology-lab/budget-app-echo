@@ -35,6 +35,13 @@ func (h *Handler) Register(c echo.Context) error {
 		return common.SendBadRequestResponse(c, "Email has already been taken")
 	}
 
+	if payload.Phone != "" {
+		_, err := userService.GetUserByPhone(payload.Phone)
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return common.SendBadRequestResponse(c, "Phone has already been taken")
+	}
+	}
+
 	registerUser, err := userService.RegisterUser(payload)
 	if err != nil {
 		return common.SendInternalServerErrorResponse(c, err.Error())
@@ -50,6 +57,7 @@ func (h *Handler) Register(c echo.Context) error {
 			LoginLink: "#",
 		},
 	}
+	
 	// sending a welcome email to user
 
 	err = h.Mailer.Send(payload.Email, "welcome.html", mailData)

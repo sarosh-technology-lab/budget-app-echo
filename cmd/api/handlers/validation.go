@@ -31,6 +31,8 @@ func (h *Handler) ValidateRequest(c echo.Context, payload interface{}) []*common
 
 			errMessage := ""
 
+			// generating custom validation error messages
+
 			switch (condition) {
 			case "required":
 				errMessage = keyToTitleCase + " is required"
