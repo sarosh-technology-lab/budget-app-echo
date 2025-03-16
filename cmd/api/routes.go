@@ -19,7 +19,7 @@ func (app *Application) routes() {
 
 	categoryRoutes := apiGroup.Group("/category", app.appMiddleware.AuthenticationMiddleware)
 	{
-		categoryRoutes.GET("/list", app.handler.GetCategories)
+		categoryRoutes.GET("/list", app.handler.ListCategories)
 		categoryRoutes.POST("/store", app.handler.StoreCategory)
 		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategory)
 	}

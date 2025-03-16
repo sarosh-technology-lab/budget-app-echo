@@ -5,20 +5,22 @@ import (
 	"budget-backend/cmd/api/services"
 	"budget-backend/common"
 	"budget-backend/internal/custom_app_errors"
+	"budget-backend/internal/models"
 	"errors"
 
 	"github.com/labstack/echo/v4"
 )
 
-func (h *Handler) GetCategories(c echo.Context) error {
+func (h *Handler) ListCategories(c echo.Context) error {
+	var categories []*models.Category
+	paginator := common.NewPaginator(categories, c.Request(), h.DB)
 	categoryService := services.NewCategoryService(h.DB)
-
-	categories, err := categoryService.List()
+	pagiantedCategory, err := categoryService.List(categories, paginator)
 	if err != nil {
 		return common.SendInternalServerErrorResponse(c, err.Error())
 	}
 
-	return common.SendSuccessResponse(c, "categories listing", categories)
+	return common.SendSuccessResponse(c, "categories listing", pagiantedCategory)
 }
 
 func (h *Handler) StoreCategory(c echo.Context) error {
