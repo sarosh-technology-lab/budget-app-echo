@@ -69,6 +69,6 @@ func (appTokenService *AppTokenService) ValidatePasswordToken(user models.User, 
 	return &retreivedToken, nil
 }
 
-func (appTokenService *AppTokenService) InvalidatedToken(user_id int, appToken models.AppToken) {
-	appTokenService.db.Model(&models.AppToken{}).Where("trget_id = ? AND token = ?", user_id, appToken.Token).Update("used", true)
+func (appTokenService *AppTokenService) InvalidatedToken(user_id uint, appToken models.AppToken) {
+	appTokenService.db.Model(&models.AppToken{}).Where("target_id = ? AND token = ?", user_id, appToken.Token).Update("used", true)
 }

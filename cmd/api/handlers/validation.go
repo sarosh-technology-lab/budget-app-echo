@@ -42,6 +42,8 @@ func (h *Handler) ValidateRequest(c echo.Context, payload interface{}) []*common
 					errMessage = fmt.Sprintf("%s must be of atleast %s characters", keyToTitleCase, param)
 			case "max":
 					errMessage = fmt.Sprintf("%s must not be greater than %s characters", keyToTitleCase, param)	
+			case "eqfield":
+					errMessage = fmt.Sprintf("%s must match exactly to entered %s", keyToTitleCase, strings.ToLower(param))
 			case "len":
 					errMessage = fmt.Sprintf("%s lenght must be of exact %s characters", keyToTitleCase, param)
 			case "alphanum":

@@ -46,7 +46,7 @@ func (h *Handler) ForgotPassword(c echo.Context) error {
 		return common.SendInternalServerErrorResponse(c, "An error occurred, please try again later")
 	}
 
-	encodedEmail := base64.StdEncoding.EncodeToString([]byte(user.Email))
+	encodedEmail := base64.RawURLEncoding.EncodeToString([]byte(user.Email))
 
 	frontendUrl, err := url.Parse(payload.FrontendURL)
 	if err != nil {
@@ -54,9 +54,11 @@ func (h *Handler) ForgotPassword(c echo.Context) error {
 	}
 
 	query := url.Values{}
-	query.Set("email", encodedEmail)
 	query.Set("token", token.Token)
+	query.Set("email", encodedEmail)
 	frontendUrl.RawQuery = query.Encode()
+
+	print(frontendUrl.String())
 
 	mailData := mailer.EmailData{
 		Subject: "Request Password Reset " + os.Getenv("APP_NAME"),
@@ -77,4 +79,51 @@ func (h *Handler) ForgotPassword(c echo.Context) error {
 	}
 
 	return common.SendSuccessResponse(c, "Forgot Password Email Sent", nil)
+}
+
+func (h *Handler) ResetPassword(c echo.Context) error {
+	payload := new(requests.ResetPasswordRequest)
+	if err := h.BindBodyRequest(c, payload); err != nil {
+		return common.SendBadRequestResponse(c, err.Error())
+	}
+
+	// validating the data
+
+	validationErrors := h.ValidateRequest(c, *payload)
+
+	if validationErrors != nil {
+		return common.SendValidationErrorResponse(c, validationErrors)
+	}
+
+	email, err := base64.RawURLEncoding.DecodeString(payload.Meta)
+	if err != nil {
+		return common.SendBadRequestResponse(c, "an error occured, try again later")
+	}
+
+	userService := services.NewUserService(h.DB)
+	appTokenService := services.NewAppTokenService(h.DB)
+
+	user, err := userService.GetUserByEmail(string(email))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return common.SendNotFoundResponse(c, "invalid password reset token", http.StatusNotFound)
+		}
+		return common.SendInternalServerErrorResponse(c, "An error occurred, please try again later")
+	}
+
+	appToken, err := appTokenService.ValidatePasswordToken(*user, payload.Token)
+	if err != nil {
+		return common.SendInternalServerErrorResponse(c, err.Error())
+	}
+
+	err = userService.ChangeUserPassword(*user, payload.Password)
+
+	if err != nil {
+		return common.SendInternalServerErrorResponse(c, err.Error())
+	}
+
+	//invalidate the token, setting used = true
+	appTokenService.InvalidatedToken(user.ID, *appToken)
+
+	return common.SendSuccessResponse(c, "password is successfuly reset", nil)
 }
