@@ -22,27 +22,29 @@ run-dev:
 	go run ./cmd/api
 
 
-migrate:
+migrate-up:
 	echo "Running migrations up"
-	go run ./internal/database/migrate_up.go
+	go run ./internal/database/migrate.go -direction=up
+
+migrate-down:
+	echo "Running migrations up"
+	go run ./internal/database/migrate.go -direction=down
+
+migrate_fresh:
+	echo "Running fresh migrations"
+	go run ./internal/database/migrate.go -direction=down
+	go run ./internal/database/migrate.go -direction=up
 
 #E.G make seeder FILENAME=category
 .PHONY: seeder
 seeder:
 ifdef FILENAME
-	echo "Seedinng : $(FILENAME).go"
+	echo "Seedinng : $(FILENAME)_seeder.go"
 	go run "./internal/database/seeders/$(FILENAME)_seeder.go"
 else
 	echo "Error: FILENAME is not specified. Please provide the filename using 'make seeder FILENAME=<filename>'"
 	exit 1
 endif
-
-migrate_fresh:
-	echo "Running fresh migrations"
-	go run ./internal/database/migrate_fresh.go
-
-migrate_down:
-	go run ./migrations/drop_migrations.go
 
 test:
 	 gotest ./tests/... -v

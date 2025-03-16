@@ -53,7 +53,7 @@ func SendBadRequestResponse(c echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusBadRequest)
 }
 
-func SendNotFoundResponse(c echo.Context, message string, statusCode int) error {
+func SendNotFoundResponse(c echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusNotFound)
 }
 

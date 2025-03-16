@@ -7,7 +7,6 @@ import (
 	"budget-backend/internal/mailer"
 	"encoding/base64"
 	"errors"
-	"net/http"
 	"net/url"
 	"os"
 	"github.com/labstack/echo/v4"
@@ -36,7 +35,7 @@ func (h *Handler) ForgotPassword(c echo.Context) error {
 	user, err := userService.GetUserByEmail(payload.Email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return common.SendNotFoundResponse(c, "Record not found, register with the provided email first", http.StatusNotFound)
+			return common.SendNotFoundResponse(c, "Record not found, register with the provided email first")
 		}
 		return common.SendInternalServerErrorResponse(c, "An error occurred, please try again later")
 	}
@@ -106,7 +105,7 @@ func (h *Handler) ResetPassword(c echo.Context) error {
 	user, err := userService.GetUserByEmail(string(email))
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return common.SendNotFoundResponse(c, "invalid password reset token", http.StatusNotFound)
+			return common.SendNotFoundResponse(c, "invalid password reset token")
 		}
 		return common.SendInternalServerErrorResponse(c, "An error occurred, please try again later")
 	}

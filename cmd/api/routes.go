@@ -16,4 +16,11 @@ func (app *Application) routes() {
 		profileRoutes.PUT("/change-password", app.handler.ChangeUserPassword)
 		profileRoutes.PUT("/update-user", app.handler.UpdateUser)
 	}
+
+	categoryRoutes := apiGroup.Group("/category", app.appMiddleware.AuthenticationMiddleware)
+	{
+		categoryRoutes.GET("/list", app.handler.GetCategories)
+		categoryRoutes.POST("/store", app.handler.StoreCategory)
+		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategory)
+	}
 }
