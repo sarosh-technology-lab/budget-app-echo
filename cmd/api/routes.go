@@ -1,6 +1,9 @@
 package main
 
 func (app *Application) routes() {
+
+	app.server.GET("admin-login-page", app.handler.ViewAdminLoginPage)
+	app.server.GET("user-login-page", app.handler.ViewUserLoginPage)
 	apiGroup := app.server.Group("/api")
 	publicAuthRoutes := apiGroup.Group("/auth")
 	{
