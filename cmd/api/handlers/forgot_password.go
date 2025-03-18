@@ -57,7 +57,7 @@ func (h *Handler) ForgotPassword(c echo.Context) error {
 	query.Set("email", encodedEmail)
 	frontendUrl.RawQuery = query.Encode()
 
-	print(frontendUrl.String())
+	// print(frontendUrl.String())
 
 	mailData := mailer.EmailData{
 		Subject: "Request Password Reset " + os.Getenv("APP_NAME"),

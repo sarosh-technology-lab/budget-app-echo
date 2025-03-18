@@ -47,12 +47,23 @@ func (categoryService CategoryService) Create(data requests.CategoryRequest) (*m
 		IsCustom: data.IsCustom,
 	}
 
-	result := categoryService.DB.Where(models.Category{Slug: slug, Name: data.Name}).FirstOrCreate(category)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
-			return category, errors.New("category already exists")
-	}
-		return nil, errors.New("failed to create category")
+	// Start a transaction
+	err := categoryService.DB.Transaction(func(tx *gorm.DB) error {
+		// Use the transaction (tx) instead of the main DB connection
+		result := tx.Where(models.Category{Slug: slug, Name: data.Name}).FirstOrCreate(category)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
+				return errors.New("category already exists")
+			}
+			return errors.New("failed to create category")
+		}
+		// If no error, transaction commits automatically
+		return nil
+	})
+
+	// Handle the transaction result
+	if err != nil {
+		return nil, err
 	}
 
 	return category, nil

@@ -41,7 +41,6 @@ func AppMailer(logger echo.Logger) Mailer{
 		dialer: dialer,
 		sender: mailSender,
 		Logger: logger,
-		
 	}
 }
 

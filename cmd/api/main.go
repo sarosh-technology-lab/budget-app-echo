@@ -11,10 +11,9 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type Application struct {
@@ -34,6 +33,17 @@ func (t *TemplateRenderer) Render(w io.Writer, name string, data interface{}, c 
 	return t.templates.ExecuteTemplate(w, name, data)
 }
 
+// Configure lumberjack logger
+func setupLogger() *lumberjack.Logger {
+	return &lumberjack.Logger{
+		Filename:   "logs/app.log", // Log file path
+		MaxSize:    10,             // Max size in megabytes before rotation
+		MaxBackups: 3,              // Max number of old log files to keep
+		MaxAge:     28,             // Max number of days to retain old log files
+		Compress:   true,           // Compress rotated log files
+	}
+}
+
 func main() {
 	err := godotenv.Load()
 
@@ -41,18 +51,28 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	// Set up lumberjack logger
+	lumberjackLogger := setupLogger()
+	defer lumberjackLogger.Close()
+
 	db, err := common.Mysql()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	e := echo.New()
+
+	// Configure Echo logger to write to lumberjack
+	logWriter := io.MultiWriter(os.Stdout, lumberjackLogger) // Logs to both console and file
+	e.Logger.SetOutput(logWriter)
+	// Configure middleware logger to use the same output
+	// e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+	// 	Output: logWriter,
+	// }))
 	
 	appMailer := mailer.AppMailer(e.Logger)
 
 	// Load templates
-	
-	// Load templates with full paths as names
 	tmpl := template.New("")
 	adminFiles, err := filepath.Glob("internal/views/admin/*.html")
 	if err != nil {
@@ -65,8 +85,7 @@ func main() {
 	allFiles := append(adminFiles, userFiles...)
 
 	for _, file := range allFiles {
-		fullName := filepath.ToSlash(file) // e.g., "internal/views/admin/login.html"
-		// Read the file content and define it with the full path as the name
+		fullName := filepath.ToSlash(file)
 		content, err := os.ReadFile(file)
 		if err != nil {
 			e.Logger.Fatalf("Failed to read %s: %v", file, err)
@@ -76,9 +95,6 @@ func main() {
 			e.Logger.Fatalf("Failed to parse %s: %v", file, err)
 		}
 	}
-
-	// Log loaded templates for debugging
-	e.Logger.Infof("Loaded templates: %v", tmpl.DefinedTemplates())
 
 	renderer := &TemplateRenderer{
 		templates: tmpl,
@@ -95,8 +111,8 @@ func main() {
 		DB: db,
 		Logger: &e.Logger,
 	}
-	// initializing the application
 
+	// initializing the application
 	app := Application{
 		logger: e.Logger,
 		server: e,
@@ -104,11 +120,8 @@ func main() {
 		appMiddleware: appMiddleware,
 	}
 
-	e.Use(middleware.Logger())
 	app.routes()
-
-	fmt.Print(app)
 	port := os.Getenv("APP_PORT")
 	appAddress := fmt.Sprintf("localhost:%s", port)
-	e.Logger.Fatal(e.Start(appAddress))
+	e.Logger.Print(e.Start(appAddress))
 }
