@@ -6,13 +6,13 @@ default: help
 help:
 	@echo "Available targets:"
 	@echo "  seeder FILENAME     Process the specified seeder file name"
+	@echo "  run-air            Run the app with hot reloading using Air"
 
 # application repository and binary file name
 NAME=Bougette
 
 # application repository path
 REPOSITORY=github.com/projects/${NAME}
-
 
 install:
 	go mod download
@@ -21,6 +21,9 @@ run-dev:
 	echo "Starting Application In Development Mode"
 	go run ./cmd/api
 
+run-air:
+	echo "Starting Application with Hot Reloading using Air"
+	~/go/bin/air
 
 migrate-up:
 	echo "Running migrations up"
@@ -47,4 +50,4 @@ else
 endif
 
 test:
-	 gotest ./tests/... -v
+	gotest ./tests/... -v
