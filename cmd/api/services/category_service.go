@@ -39,19 +39,21 @@ func (categoryService CategoryService) GetById (id uint) (*models.Category, erro
 	 return category, nil
 }
 
-func (categoryService CategoryService) Create(data requests.CategoryRequest) (*models.Category, error) {
-	slug := strings.ToLower(data.Name)
+func (categoryService CategoryService) Create(data requests.CategoryRequestable) (*models.Category, error) {
+	name := data.GetName()
+	isCustom := data.GetIsCustom()
+	slug := strings.ToLower(name)
 	slug = strings.Replace(slug, " ", "_", -1)
 	category := &models.Category{
 		Slug: slug,
-		Name: data.Name,
-		IsCustom: data.IsCustom,
+		Name: name,
+		IsCustom: isCustom,
 	}
 
 	// Start a transaction
 	err := categoryService.DB.Transaction(func(tx *gorm.DB) error {
 		// Use the transaction (tx) instead of the main DB connection
-		result := tx.Where(models.Category{Slug: slug, Name: data.Name}).FirstOrCreate(category)
+		result := tx.Where(models.Category{Slug: slug, Name: name}).FirstOrCreate(category)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrDuplicatedKey) {
 				return errors.New("category already exists")

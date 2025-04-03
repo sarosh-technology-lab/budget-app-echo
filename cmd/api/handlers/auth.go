@@ -106,7 +106,7 @@
 
 		// send response with user token
 
-		accessToken, refreshToken, err := common.GenerateJWT((*user))
+		accessToken, refreshToken, err := common.GenerateJWT(*user)
 		if err != nil {
 			return common.SendInternalServerErrorResponse(c, err.Error())
 		}

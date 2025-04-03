@@ -2,8 +2,8 @@ package main
 
 func (app *Application) routes() {
 
-	app.server.GET("admin-login-page", app.handler.ViewAdminLoginPage)
-	app.server.GET("user-login-page", app.handler.ViewUserLoginPage)
+	// api routes
+
 	apiGroup := app.server.Group("/api")
 	publicAuthRoutes := apiGroup.Group("/auth")
 	{
@@ -25,5 +25,16 @@ func (app *Application) routes() {
 		categoryRoutes.GET("/list", app.handler.ListCategories)
 		categoryRoutes.POST("/store", app.handler.StoreCategory)
 		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategory)
+	}
+
+	// web routes
+
+	webGroup := app.server.Group("/web")
+	{
+		webGroup.GET("/index", app.handler.ViewIndexPage)
+		webGroup.GET("/admin/login", app.handler.ViewAdminLoginPage)
+		webGroup.GET("/user/login", app.handler.ViewUserLoginPage)
+		webGroup.GET("/category-form-page", app.handler.CategoryFormPage)
+		webGroup.POST("/save-category", app.handler.SaveCategoryForm)
 	}
 }

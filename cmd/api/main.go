@@ -73,16 +73,28 @@ func main() {
 	appMailer := mailer.AppMailer(e.Logger)
 
 	// Load templates
+	var allFiles []string
 	tmpl := template.New("")
+	files, err := filepath.Glob("internal/views/*.html")
+	if err != nil {
+		e.Logger.Fatalf("Failed to glob admin templates: %v", err)
+	}
+	allFiles = append(allFiles, files...)
 	adminFiles, err := filepath.Glob("internal/views/admin/*.html")
 	if err != nil {
 		e.Logger.Fatalf("Failed to glob admin templates: %v", err)
 	}
+	allFiles = append(allFiles, adminFiles...)
 	userFiles, err := filepath.Glob("internal/views/user/*.html")
 	if err != nil {
 		e.Logger.Fatalf("Failed to glob user templates: %v", err)
 	}
-	allFiles := append(adminFiles, userFiles...)
+	allFiles = append(allFiles, userFiles...)
+	categoriesFiles, err := filepath.Glob("internal/views/categories/*.html")
+	if err != nil {
+		e.Logger.Fatalf("Failed to glob admin templates: %v", err)
+	}
+	allFiles = append(allFiles, categoriesFiles...)
 
 	for _, file := range allFiles {
 		fullName := filepath.ToSlash(file)
@@ -123,5 +135,6 @@ func main() {
 	app.routes()
 	port := os.Getenv("APP_PORT")
 	appAddress := fmt.Sprintf("localhost:%s", port)
-	e.Logger.Print(e.Start(appAddress))
+	// e.Logger.Print(e.Start(appAddress))
+	e.Start(appAddress)
 }
