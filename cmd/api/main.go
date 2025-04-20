@@ -55,7 +55,7 @@ func main() {
 	lumberjackLogger := setupLogger()
 	defer lumberjackLogger.Close()
 
-	db, err := common.Mysql()
+	db, err := common.Sql()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")

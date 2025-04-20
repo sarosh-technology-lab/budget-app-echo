@@ -5,12 +5,23 @@ import (
 	"budget-backend/internal/models"
 	"flag"
 	"log"
+	"strings"
+
 	"gorm.io/gorm"
 )
 
 func migrateUp(db *gorm.DB) error {
+ // Create enum type first
+    err := db.Exec("CREATE TYPE gender_enum AS ENUM ('M', 'F', 'O')").Error
+    if err != nil {
+        // Ignore error if enum already exists
+        if !strings.Contains(err.Error(), "already exists") {
+            return err
+        }
+    }
+
 	// Up migration: Create tables
-	err := db.AutoMigrate(&models.User{}, &models.AppToken{}, &models.Category{})
+	err = db.AutoMigrate(&models.User{}, &models.AppToken{}, &models.Category{})
 	if err != nil {
 		return err
 	}
@@ -24,6 +35,12 @@ func migrateDown(db *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+
+	// Drop the enum type
+    err = db.Exec("DROP TYPE IF EXISTS gender_enum").Error
+    if err != nil {
+        return err
+    }
 	log.Println("Down migration completed (tables dropped)")
 	return nil
 }
@@ -34,7 +51,7 @@ func main() {
 	flag.Parse()
 
 	// Connect to the database
-	db, err := common.Mysql()
+	db, err := common.Sql()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

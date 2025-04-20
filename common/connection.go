@@ -5,11 +5,11 @@ import (
 	"log"
 	"os"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func Mysql() (*gorm.DB, error) {
+func Sql() (*gorm.DB, error) {
 
 	err := godotenv.Load()
 
@@ -23,8 +23,9 @@ func Mysql() (*gorm.DB, error) {
 	username := os.Getenv("DB_USERNAME")
 	password := os.Getenv("DB_PASSWORD")
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, host, port, database)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true})
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", 
+        host, username, password, database, port)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{TranslateError: true})
 	if err != nil {
 		return nil, err
 	}
