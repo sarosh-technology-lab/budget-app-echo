@@ -4,11 +4,11 @@
 		"budget-backend/cmd/api/requests"
 		"budget-backend/cmd/api/services"
 		"budget-backend/common"
-		"budget-backend/internal/mailer"
+		// "budget-backend/internal/mailer"
 		"budget-backend/internal/models"
 		"errors"
 		"net/http"
-		"os"
+		// "os"
 
 		"github.com/labstack/echo/v4"
 		"gorm.io/gorm"
@@ -49,23 +49,23 @@
 			return common.SendInternalServerErrorResponse(c, err.Error())
 		}
 
-		mailData := mailer.EmailData{
-			Subject: "welcome to " + os.Getenv("APP_NAME"),
-			Meta: struct {
-				FirstName string
-				LoginLink string
-			}{
-				FirstName: registerUser.FirstName,
-				LoginLink: "#",
-			},
-		}
+		// mailData := mailer.EmailData{
+		// 	Subject: "welcome to " + os.Getenv("APP_NAME"),
+		// 	Meta: struct {
+		// 		FirstName string
+		// 		LoginLink string
+		// 	}{
+		// 		FirstName: registerUser.FirstName,
+		// 		LoginLink: "#",
+		// 	},
+		// }
 
-		// sending a welcome email to user
+		// // sending a welcome email to user
 
-		err = h.Mailer.Send(payload.Email, "welcome.html", mailData)
-		if err != nil {
-			h.Logger.Error(err)
-		}
+		// err = h.Mailer.Send(payload.Email, "welcome.html", mailData)
+		// if err != nil {
+		// 	h.Logger.Error(err)
+		// }
 
 		return common.SendSuccessResponse(c, "User Registered", registerUser)
 	}
@@ -115,6 +115,7 @@
 			"access_token":  accessToken,
 			"refresh_token": refreshToken,
 			"user_id":       user.ID,
+			"role_id":       user.RoleId,
 		})
 	}
 

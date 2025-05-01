@@ -6,7 +6,6 @@ import (
 	"flag"
 	"log"
 	"strings"
-
 	"gorm.io/gorm"
 )
 
@@ -21,7 +20,7 @@ func migrateUp(db *gorm.DB) error {
     }
 
 	// Up migration: Create tables
-	err = db.AutoMigrate(&models.User{}, &models.AppToken{}, &models.Category{})
+	err = db.AutoMigrate(&models.User{}, &models.AppToken{}, &models.Category{}, &models.Role{}, &models.Permission{}, &models.RolePermission{})
 	if err != nil {
 		return err
 	}
@@ -31,7 +30,7 @@ func migrateUp(db *gorm.DB) error {
 
 func migrateDown(db *gorm.DB) error {
 	// Down migration: Drop tables
-	err := db.Migrator().DropTable(&models.User{}, &models.AppToken{}, &models.Category{})
+	err := db.Migrator().DropTable(&models.User{}, &models.AppToken{}, &models.Category{}, &models.Role{}, &models.Permission{}, &models.RolePermission{})
 	if err != nil {
 		return err
 	}

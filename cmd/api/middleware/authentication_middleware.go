@@ -28,7 +28,7 @@ func (appMiddleware *AppMiddleware) AuthenticationMiddleware(next echo.HandlerFu
 		if err != nil {
 			return common.SendErrorResponse(c, "invalid access token", http.StatusUnauthorized)
 		}
-		if common.IsClaimExpired((claims)){
+		if common.IsClaimExpired(claims){
 			return common.SendErrorResponse(c, "token is expired", http.StatusUnauthorized)
 		}
 
@@ -41,6 +41,7 @@ func (appMiddleware *AppMiddleware) AuthenticationMiddleware(next echo.HandlerFu
 			return common.SendErrorResponse(c, "invalid access token", http.StatusUnauthorized)
 		}
 		c.Set("user", user)
+		c.Set("role_id", user.RoleId)
 		return next(c)
 	}
 }

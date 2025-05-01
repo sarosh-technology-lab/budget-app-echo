@@ -26,11 +26,14 @@ func (userService UserService) RegisterUser(userRequest *requests.RegisterUserRe
 		return nil, errors.New("password hashing failed")
 	}
 	user := models.User{
+		RoleId: userRequest.RoleId,
 		FirstName: userRequest.FirstName,
 		LastName: userRequest.LastName,
 		Password: hashedPassword,
 		Phone: userRequest.Phone,
 		Email: userRequest.Email,
+		Gender: &userRequest.Gender,
+		Address: userRequest.Address,
 	}
 
 	result := userService.db.Create(&user)

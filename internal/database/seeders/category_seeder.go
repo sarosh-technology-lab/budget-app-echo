@@ -1,4 +1,4 @@
-package main
+package seeders
 
 import (
 	"budget-backend/cmd/api/requests"
@@ -6,14 +6,12 @@ import (
 	"budget-backend/common"
 )
 
-func main() {
-	db, err := common.Mysql()
+func SeedCategories() {
+	db, err := common.Sql()
 	if err != nil {
 		panic(err)
 	}
-	categoryService := services.CategoryService{
-		DB: db,
-	}
+	categoryService := services.NewCategoryService(db)
 
 	categories := []string{
 		"Food", "Gifts", "Health", "Fashion", "Medical", "Eat Out", "Services", "Information Technology",
@@ -27,6 +25,5 @@ func main() {
 		if err != nil {
 			panic(err.Error())
 		}
-		println("category " + category + " created")
 	}
 }

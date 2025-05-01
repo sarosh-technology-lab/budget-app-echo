@@ -11,12 +11,14 @@ import (
 
 type CustomJWTClaims struct{
 	ID uint `json:"id"`
+	RoleID uint `json:"role_id"`
 	jwt.RegisteredClaims
 }
 
 func GenerateJWT(user models.User) (*string, *string, error) {
 	userClaims := CustomJWTClaims{
 		ID: uint(user.ID),
+		RoleID: user.RoleId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt: jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 100)),
@@ -31,6 +33,8 @@ func GenerateJWT(user models.User) (*string, *string, error) {
 	}
 
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &CustomJWTClaims{
+		ID: uint(user.ID),
+		RoleID: user.RoleId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt: jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 100)),

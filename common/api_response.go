@@ -57,6 +57,10 @@ func SendNotFoundResponse(c echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusNotFound)
 }
 
+func SendForbiddenResponse(c echo.Context, message string) error {
+	return SendErrorResponse(c, message, http.StatusForbidden)
+}
+
 func SendInternalServerErrorResponse(c echo.Context, message string) error {
 	return SendErrorResponse(c, message, http.StatusInternalServerError)
 }

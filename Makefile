@@ -5,7 +5,7 @@ default: help
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  seeder FILENAME     Process the specified seeder file name"
+	@echo "  seed               Seed the database"
 	@echo "  run-air            Run the app with hot reloading using Air"
 
 # application repository and binary file name
@@ -33,21 +33,15 @@ migrate-down:
 	echo "Running migrations up"
 	go run ./internal/database/migrate.go -direction=down
 
-migrate_fresh:
+migrate-fresh:
 	echo "Running fresh migrations"
 	go run ./internal/database/migrate.go -direction=down
 	go run ./internal/database/migrate.go -direction=up
 
-#E.G make seeder FILENAME=category
-.PHONY: seeder
-seeder:
-ifdef FILENAME
-	echo "Seedinng : $(FILENAME)_seeder.go"
-	go run "./internal/database/seeders/$(FILENAME)_seeder.go"
-else
-	echo "Error: FILENAME is not specified. Please provide the filename using 'make seeder FILENAME=<filename>'"
-	exit 1
-endif
+seed:
+	echo "Seeding Database"
+	go run "./cmd/seed.go"
+	echo "Seeding Completed"
 
 test:
 	gotest ./tests/... -v
