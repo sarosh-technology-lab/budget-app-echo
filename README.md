@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a demo/practice project built using echo framework of golang and PostgreSQL
+This is a demo/practice project built using echo framework (golang) and PostgreSQL
 
 ## Features
 
