@@ -7,6 +7,7 @@ import (
 	"time"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 type CustomJWTClaims struct{
@@ -15,39 +16,51 @@ type CustomJWTClaims struct{
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(user models.User) (*string, *string, error) {
-	userClaims := CustomJWTClaims{
-		ID: uint(user.ID),
-		RoleID: user.RoleId,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 100)),
-		},
-	}
-	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaims)
-	signedAccessToken, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+func GenerateJWT(user models.User, db *gorm.DB) (*string, *string, error) {
+    // Access token (short-lived, e.g., 15 minutes)
+    userClaims := CustomJWTClaims{
+        ID:     uint(user.ID),
+        RoleID: user.RoleId,
+        RegisteredClaims: jwt.RegisteredClaims{
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)), // Short expiration
+        },
+    }
+    accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaims)
+    signedAccessToken, err := accessToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+    if err != nil {
+        echo.New().Logger.Error(err)
+        return nil, nil, err
+    }
 
-	if err != nil {
-		echo.New().Logger.Error(err)
-		return nil, nil, err
-	}
+    // Refresh token (long-lived, e.g., 7 days)
+    refreshClaims := CustomJWTClaims{
+        ID:     uint(user.ID),
+        RoleID: user.RoleId,
+        RegisteredClaims: jwt.RegisteredClaims{
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)), // 7 days
+        },
+    }
+    refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
+    signedRefreshToken, err := refreshToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+    if err != nil {
+        echo.New().Logger.Error(err)
+        return nil, nil, err
+    }
 
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &CustomJWTClaims{
-		ID: uint(user.ID),
-		RoleID: user.RoleId,
-		RegisteredClaims: jwt.RegisteredClaims{
-			IssuedAt: jwt.NewNumericDate(time.Now()),
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 100)),
-		},
-	})
-	signedRefreshToken, err := refreshToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
+    // Store refresh token in the database
+    refreshTokenModel := models.RefreshToken{
+        UserID:    uint(user.ID),
+        Token:     signedRefreshToken,
+        ExpiresAt: time.Now().Add(time.Hour * 24 * 7),
+    }
+    if err := db.Create(&refreshTokenModel).Error; err != nil {
+        echo.New().Logger.Error(err)
+        return nil, nil, err
+    }
 
-	if err != nil {
-		echo.New().Logger.Error(err)
-		return nil, nil, err
-	}
-
-	return &signedAccessToken, &signedRefreshToken, nil
+    return &signedAccessToken, &signedRefreshToken, nil
 }
 
 func ParseJWTSignedAccessToken(signedAccessToken string) (*CustomJWTClaims, error) {

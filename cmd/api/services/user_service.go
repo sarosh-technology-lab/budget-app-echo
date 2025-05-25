@@ -62,6 +62,15 @@ func (userService UserService) GetUserByPhone(phone string) (*models.User, error
 	return &user, nil
 }
 
+func (userService UserService) GetUserByID(id uint) (*models.User, error) {
+	var user models.User
+	result := userService.db.Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &user, nil
+}
+
 func (userService UserService) ChangeUserPassword(user models.User, newPassword string) error {
 	// hash password
 	hashedPassword, err := common.HashPassword(newPassword)
