@@ -30,6 +30,14 @@ func (app *Application) routes() {
 		categoryRoutes.DELETE("/delete/:id", app.handler.DeleteCategory, middlewares.PermissionMiddleware("Delete:Category"))
 	}
 
+	subcCategoryRoutes := apiGroup.Group("/subcategory", app.appMiddleware.AuthenticationMiddleware)
+	{
+		subcCategoryRoutes.GET("/list", app.handler.ListSubCategories)
+		subcCategoryRoutes.POST("/store", app.handler.StoreSubCategory)
+		subcCategoryRoutes.PUT("/update", app.handler.UpdateSubCategory)
+		subcCategoryRoutes.DELETE("/delete/:id", app.handler.DeleteSubCategory)
+	}
+
 	// web routes
 
 	webGroup := app.server.Group("/web")
