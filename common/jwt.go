@@ -23,7 +23,7 @@ func GenerateJWT(user models.User, db *gorm.DB) (*string, *string, error) {
         RoleID: user.RoleId,
         RegisteredClaims: jwt.RegisteredClaims{
             IssuedAt:  jwt.NewNumericDate(time.Now()),
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)), // Short expiration
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 45)), // Short expiration 45 minutes
         },
     }
     accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaims)

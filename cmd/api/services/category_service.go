@@ -28,7 +28,7 @@ func (categoryService CategoryService) List(categories []*models.Category, pagin
 
 func (categoryService CategoryService) GetById (id uint) (*models.Category, error) {
 	 var category *models.Category
-	 result := categoryService.DB.First(&category, id)
+	 result := categoryService.DB.First(&category, id).Where("deleted_at IS NULL")
 	 if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, custom_app_errors.NewNotFoundError("category not found")

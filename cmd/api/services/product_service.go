@@ -99,7 +99,6 @@ func (s ProductService) Update(data requests.ProductRequestable) error {
     name := data.GetName()
     categoryId := data.GetCategoryId()
 
-    // Optional: skip if nothing meaningful changed (depends on your request struct)
     if name == "" && categoryId == 0 {
         return nil // or return error — your choice
     }
