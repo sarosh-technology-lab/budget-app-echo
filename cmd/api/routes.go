@@ -38,6 +38,16 @@ func (app *Application) routes() {
 		subcCategoryRoutes.DELETE("/delete/:id", app.handler.DeleteSubCategory)
 	}
 
+	productRoutes := apiGroup.Group("/product", app.appMiddleware.AuthenticationMiddleware)
+	{
+		productRoutes.GET("/list", app.handler.ListProducts)
+		productRoutes.POST("/store", app.handler.StoreProduct)
+		productRoutes.PUT("/update", app.handler.UpdateProduct)
+		productRoutes.DELETE("/delete/:id", app.handler.DeleteProduct)
+	}
+
+	app.server.Static("/images", "./public/images")
+
 	// web routes
 
 	webGroup := app.server.Group("/web")

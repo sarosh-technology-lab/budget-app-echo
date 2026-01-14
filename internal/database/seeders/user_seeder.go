@@ -16,6 +16,6 @@ func SeedUsers() {
 		panic(err)
 	}
 
-	var users = []models.User{{RoleId: 1, FirstName: "Admin", LastName: "Admin", Email: "admin@example.com", Password: hashedPassword}}
+	var users = []models.User{{RoleId: 1, FirstName: "Admin", LastName: "Admin", Email: "sarosh.techlab@gmail.com", Password: hashedPassword}}
 	db.Create(&users)
 }
