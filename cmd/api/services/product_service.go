@@ -63,6 +63,11 @@ func (productService ProductService) Create(data requests.ProductRequestable) (*
 		 return nil, errors.New("category does not exist")
 	}
 
+     _, err = NewSubCategoryService(productService.DB).GetById(subCategoryId) // check if sub category exists
+	if err != nil {
+		 return nil, errors.New("sub category does not exist")
+	}
+
 	// Start a transaction
 	err = productService.DB.Transaction(func(tx *gorm.DB) error {
 		// Use the transaction (tx) instead of the main DB connection
