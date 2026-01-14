@@ -98,20 +98,23 @@ func (s ProductService) Update(data requests.ProductRequestable) error {
 
     name := data.GetName()
     categoryId := data.GetCategoryId()
+    subCategoryId := data.GetSubCategoryId()
+    description := data.GetDescription()
+    image := data.GetImage()
 
-    if name == "" && categoryId == 0 {
-        return nil // or return error — your choice
+    if name == "" && categoryId == 0 && subCategoryId == 0 && description == "" && image == "" {
+        return nil
     }
 
     slug := ""
     if name != "" {
         slug = strings.ToLower(name)
-        slug = strings.ReplaceAll(slug, " ", "_") // cleaner than Replace with -1
+        slug = strings.ReplaceAll(slug, " ", "_")
     }
 
-    // Fetch existing to verify it exists (and to get old values if needed)
+    // Fetch existing to verify it exists
     var existing models.Product
-    if err := s.DB.First(&existing, id).Error; err != nil {
+    if err := s.DB.First(&existing, int(id)).Error; err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
             return errors.New("product does not exist")
         }
@@ -125,8 +128,15 @@ func (s ProductService) Update(data requests.ProductRequestable) error {
         }
     }
 
+    // Validate new sub category if being changed
+    if subCategoryId != 0 && subCategoryId != existing.SubCategoryId {
+        if _, err := NewSubCategoryService(s.DB).GetById(subCategoryId); err != nil {
+            return errors.New("sub category does not exist")
+        }
+    }
+
     return s.DB.Transaction(func(tx *gorm.DB) error {
-        // Prepare updates (only include fields that are actually changing / provided)
+        // Prepare updates
         updates := map[string]interface{}{}
 
         if name != "" {
@@ -136,38 +146,45 @@ func (s ProductService) Update(data requests.ProductRequestable) error {
         if categoryId != 0 {
             updates["CategoryId"] = categoryId
         }
+        if subCategoryId != 0 {
+            updates["SubCategoryId"] = subCategoryId
+        }
+        if description != "" {
+            updates["Description"] = description
+        }
+        if image != "" {
+            updates["Image"] = image
+        }
 
         if len(updates) == 0 {
-            return nil // nothing to do
+            return nil
         }
 
         // Check for uniqueness conflict (excluding self)
         var conflict models.Product
-        q := tx.Where("id != ?", id)
+        checkName := name
+        checkSlug := slug
+        checkCategoryId := categoryId
 
-        if name != "" {
-            q = q.Where("slug = ? AND name = ?", slug, name)
-        } else {
-            // If name not changing, check against existing name/slug + new category if changed
-            q = q.Where("slug = ? AND name = ?", existing.Slug, existing.Name)
+        if name == "" {
+            checkName = existing.Name
+            checkSlug = existing.Slug
+        }
+        if categoryId == 0 {
+            checkCategoryId = existing.CategoryId
         }
 
-        if categoryId != 0 {
-            q = q.Where("category_id = ?", categoryId)
-        } else {
-            q = q.Where("category_id = ?", existing.CategoryId)
-        }
+        result := tx.Where("slug = ? AND name = ? AND category_id = ? AND id != ?", 
+            checkSlug, checkName, int(checkCategoryId), int(id)).First(&conflict)
 
-        if err := q.First(&conflict).Error; err == nil {
+        if result.Error == nil {
             return errors.New("another product with the same name/slug/category already exists")
-        } else if !errors.Is(err, gorm.ErrRecordNotFound) {
-            return err
+        } else if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+            return result.Error
         }
 
-        // Now perform the safe update by ID
-        result := tx.Model(&models.Product{}).
-            Where("id = ?", id).
-            Updates(updates)
+        // Perform the update
+        result = tx.Model(&models.Product{}).Where("id = ?", int(id)).Updates(updates)
 
         if result.Error != nil {
             if errors.Is(result.Error, gorm.ErrDuplicatedKey) {

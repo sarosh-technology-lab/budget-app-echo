@@ -89,17 +89,46 @@ func (h *Handler) StoreProduct(c echo.Context) error {
 func (h *Handler) UpdateProduct(c echo.Context) error {
 	productService := services.NewProductService(h.DB)
 
-	// bind data or in simple lang retrieve the data form the request
+	// Handle image file first
+	file, _ := c.FormFile("image")
+	var imagePath string
+	if file != nil {
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		filename := fmt.Sprintf("%d%s", time.Now().UnixMilli(), ext)
+		savePath := filepath.Join("public", "images", "products", filename)
 
-	payload := new(requests.ProductRequest)
-	if err := h.BindBodyRequest(c, payload); err != nil {
-		return common.SendBadRequestResponse(c, err.Error())
+		src, err := file.Open()
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "cannot open file"})
+		}
+		defer src.Close()
+
+		dst, err := os.Create(savePath)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "cannot save file"})
+		}
+		defer dst.Close()
+
+		if _, err = io.Copy(dst, src); err != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "copy failed"})
+		}
+
+		imagePath = "/images/products/" + filename
 	}
 
-	// validate the data
+	// Try binding the form data directly
+	payload := new(requests.ProductRequest)
+	if err := c.Bind(payload); err != nil {
+		return common.SendBadRequestResponse(c, "Failed to bind form data: " + err.Error())
+	}
 
+	// Override image path if file was uploaded
+	if imagePath != "" {
+		payload.Image = imagePath
+	}
+
+	// Validate the data
 	validationErrors := h.ValidateRequest(c, *payload)
-
 	if validationErrors != nil {
 		return common.SendValidationErrorResponse(c, validationErrors)
 	}
